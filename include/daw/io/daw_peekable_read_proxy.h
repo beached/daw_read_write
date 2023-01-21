@@ -22,10 +22,12 @@ namespace daw::io {
 		IOOpResult io_result;
 		daw::contiguous_view<std::byte const> buffer;
 	};
-	class PeekableReadProxy {
+
+	template<typename ReadableValue>
+	class PeekableReader {
 		daw::vector<std::byte> buffer{ };
 		std::size_t idx_first = 0;
-		ReadProxy proxy;
+		Reader<ReadableValue> reader;
 
 		inline std::size_t buffer_size( ) const {
 			assert( idx_first <= buffer.size( ) );
@@ -48,21 +50,11 @@ namespace daw::io {
 		}
 
 	public:
-		~PeekableReadProxy( ) = default;
-		PeekableReadProxy( PeekableReadProxy && ) = default;
-		PeekableReadProxy &operator=( PeekableReadProxy && ) = default;
-		PeekableReadProxy( PeekableReadProxy const & ) = delete;
-		PeekableReadProxy &operator=( PeekableReadProxy const & ) = delete;
-
-		explicit PeekableReadProxy( ReadProxy &&rp ) noexcept
-		  : proxy( std::move( rp ) ) {}
-
-		template<typename T>
-		explicit PeekableReadProxy( T &writable_value )
-		  : proxy( ReadProxy( writable_value ) ) {}
+		explicit constexpr PeekableReader( Reader<ReadableValue> r ) noexcept
+		  : reader( std::move( r ) ) {}
 
 		template<typename Byte>
-		inline IOOpResult read( std::span<Byte> sp ) {
+		[[nodiscard]] constexpr IOOpResult read( std::span<Byte> sp ) {
 			static_assert( daw::traits::is_one_of_v<Byte, char, std::byte> );
 			auto *first = sp.data( );
 			auto *const last = daw::data_end( sp );
@@ -74,36 +66,36 @@ namespace daw::io {
 				return { IOOpStatus::Ok, sp.size( ) };
 			}
 			sp = std::span<Byte>( first, last );
-			return proxy.read( sp );
+			return reader.read( sp );
 		}
 
 		template<typename Byte>
-		inline IOOpResult get( Byte &c ) {
+		[[nodiscard]] constexpr IOOpResult get( Byte &c ) {
 			static_assert( daw::traits::is_one_of_v<Byte, char, std::byte> );
 			if( auto buff = pop_buffer( 1 ); not buff.empty( ) ) {
 				c = static_cast<Byte>( buff[0] );
 				return { IOOpStatus::Ok, 1 };
 			}
-			return proxy.get( c );
+			return reader.get( c );
 		}
 
-		inline std::size_t max_peek_size( ) const {
+		[[nodiscard]] constexpr std::size_t max_peek_size( ) const {
 			return buffer.max_size( );
 		}
 
-		void clear( ) {
+		constexpr void clear( ) {
 			buffer.clear( );
 			idx_first = 0;
 		}
 
-		inline PeekResult peek( std::size_t sz ) {
+		[[nodiscard]] constexpr PeekResult peek( std::size_t sz ) {
 			auto read_status = IOOpStatus::Ok;
 			if( buffer_size( ) < sz ) {
 				auto append_sz = sz - buffer_size( );
 				(void)buffer.append_and_overwrite(
 				  append_sz, [&]( std::byte *ptr, std::size_t size ) {
 					  auto bsp = std::span<std::byte>( ptr, size );
-					  auto result = proxy.read( bsp );
+					  auto result = reader.read( bsp );
 					  read_status = result.status;
 					  return result.count;
 				  } );
@@ -112,8 +104,10 @@ namespace daw::io {
 			return { IOOpResult{ read_status, buff.size( ) }, buff };
 		}
 
-		inline PeekResult peek( ) {
+		[[nodiscard]] constexpr PeekResult peek( ) {
 			return peek( buffer_size( ) );
 		}
 	};
+	template<typename ReadableValue>
+	PeekableReader( Reader<ReadableValue> ) -> PeekableReader<ReadableValue>;
 } // namespace daw::io

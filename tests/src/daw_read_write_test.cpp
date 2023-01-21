@@ -25,7 +25,7 @@ int main( int, char **argv ) {
 	auto sv = daw::string_view( s );
 	auto rp = daw::io::ReadProxy( sv );
 	auto sv2 = daw::string_view( s );
-	auto rpr = daw::io::PeekableReadProxy( sv2 );
+	auto rpr = daw::io::PeekableReader( daw::io::Reader(sv2) );
 	auto peek_result = rpr.peek( 5 );
 	std::cout << "Peek Result\n"
 	          << std::string_view(
