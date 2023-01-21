@@ -27,7 +27,7 @@ namespace daw::io {
 	struct ReadableInput<fd_wrap_t> {
 		template<typename Byte>
 		static IOOpResult read( fd_wrap_t fd, std::span<Byte> buff ) {
-			static_assert( sizeof( Byte ) == 1 );
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
 			if( buff.empty( ) ) {
 				return { IOOpStatus::Ok, 0 };
 			}
@@ -45,19 +45,9 @@ namespace daw::io {
 
 		template<typename Byte>
 		static IOOpResult get( fd_wrap_t fd, Byte &c ) {
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
 			return ReadableInput::read( fd,
 			                            std::span<Byte>( std::addressof( c ), 1 ) );
-		}
-
-		static inline std::size_t max_peek_size( FILE * ) {
-			return 0;
-		}
-
-		template<typename Byte>
-		[[noreturn]] DAW_ATTRIB_NOINLINE static IOOpResult
-		peek( FILE *, std::span<Byte> ) {
-			static_assert( sizeof( Byte ) == 1 );
-			io_impl::do_io_error( "Unsupported operation" );
 		}
 	};
 } // namespace daw::io

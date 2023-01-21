@@ -19,7 +19,6 @@
 #include <span>
 
 namespace daw::io {
-
 	template<typename Writable>
 	class Writer {
 		struct data_t {
@@ -48,6 +47,14 @@ namespace daw::io {
 		write( std::initializer_list<std::span<std::byte const>> const &sps ) {
 			return WritableOutput<Writable>::write( data->writable_value, sps );
 		}
+
+		[[nodiscard]] constexpr IOOpResult put( std::byte b ) {
+			return WritableOutput<Writable>::put( data->writable_value, b );
+		}
+
+		[[nodiscard]] constexpr IOOpResult put( char c ) {
+			return WritableOutput<Writable>::put( data->writable_value, c );
+		}
 	};
 	template<typename Writable>
 	Writer( Writable ) -> Writer<Writable>;
@@ -66,6 +73,8 @@ namespace daw::io {
 			  write( std::span<std::byte const> ) = 0;
 			[[nodiscard]] constexpr virtual IOOpResult
 			write( std::initializer_list<std::span<std::byte const>> const & ) = 0;
+			[[nodiscard]] constexpr virtual IOOpResult put( std::byte ) = 0;
+			[[nodiscard]] constexpr virtual IOOpResult put( char ) = 0;
 		};
 
 		namespace {
@@ -97,6 +106,14 @@ namespace daw::io {
 				[[nodiscard]] constexpr IOOpResult write(
 				  std::initializer_list<std::span<std::byte const>> const &sps ) final {
 					return WritableOutput<T>::write( writer, sps );
+				}
+
+				[[nodiscard]] constexpr IOOpResult put( std::byte b ) override {
+					return WritableOutput<T>::put( writer, b );
+				}
+
+				[[nodiscard]] constexpr IOOpResult put( char c ) override {
+					return WritableOutput<T>::put( writer, c );
 				}
 			};
 
@@ -152,6 +169,48 @@ namespace daw::io {
 		write( std::initializer_list<std::span<std::byte const>> const &sps ) {
 			assert( writer );
 			return writer->write( sps );
+		}
+
+		template<typename Byte>
+		[[nodiscard]] constexpr IOOpResult put( Byte b ) {
+			static_asssert( daw::traits::is_one_of_v<Byte, std::byte, char> );
+			assert( writer );
+			return writer->put( b );
+		}
+	};
+
+	template<>
+	class Writer<WriteProxy> {
+		WriteProxy writer;
+
+	public:
+		DAW_ATTRIB_INLINE constexpr Writer( WriteProxy &&wp ) noexcept
+		  : writer( std::move( wp ) ) {}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr IOOpResult
+		write( daw::string_view sv ) {
+			return writer.write( sv );
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr IOOpResult
+		write( std::initializer_list<daw::string_view> const &svs ) {
+			return writer.write( svs );
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr IOOpResult
+		write( std::span<std::byte const> sp ) {
+			return writer.write( sp );
+		}
+
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr IOOpResult
+		write( std::initializer_list<std::span<std::byte const>> const &sps ) {
+			return writer.write( sps );
+		}
+
+		template<typename Byte>
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr IOOpResult put( Byte b ) {
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
+			return writer.put( b );
 		}
 	};
 

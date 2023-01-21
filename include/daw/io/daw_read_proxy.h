@@ -19,6 +19,37 @@
 #include <span>
 
 namespace daw::io {
+
+	template<typename Readable>
+	class Reader {
+		struct data_t {
+			Readable &readable_value;
+		};
+		daw::unique_ptr<data_t> data{ };
+
+	public:
+		explicit Reader( ) = default;
+		explicit constexpr Reader( Readable &readable_value )
+		  : data( daw::make_unique<data_t>( readable_value ) ) {}
+
+		template<typename Byte>
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr IOOpResult
+		read( std::span<Byte> sp ) {
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
+			assert( data );
+			return ReadableInput<Readable>::read( data->readable_value, sp );
+		}
+
+		template<typename Byte>
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr IOOpResult get( Byte &c ) {
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
+			assert( data );
+			return ReadableInput<Readable>::get( data->readable_value, c );
+		}
+	};
+	template<typename ReadableType>
+	Reader( ReadableType ) -> Reader<ReadableType>;
+
 	namespace io_details {
 		struct ReadProxyImpl {
 			explicit ReadProxyImpl( ) = default;
@@ -29,9 +60,6 @@ namespace daw::io {
 			virtual constexpr IOOpResult read( std::span<std::byte> sp ) = 0;
 			virtual constexpr IOOpResult get( char &c ) = 0;
 			virtual constexpr IOOpResult get( std::byte &b ) = 0;
-			virtual constexpr std::size_t max_peek_size( ) const = 0;
-			virtual constexpr IOOpResult peek( std::span<std::byte> sp ) = 0;
-			virtual constexpr IOOpResult peek( std::span<char> sp ) = 0;
 		};
 
 		namespace {
@@ -60,18 +88,6 @@ namespace daw::io {
 				constexpr IOOpResult get( std::byte &b ) final {
 					return ReadableInput<T>::get( reader, b );
 				}
-
-				constexpr std::size_t max_peek_size( ) const final {
-					return ReadableInput<T>::max_peek_size( reader );
-				}
-
-				constexpr IOOpResult peek( std::span<char> sp ) final {
-					return ReadableInput<T>::peek( reader, sp );
-				}
-
-				constexpr IOOpResult peek( std::span<std::byte> sp ) final {
-					return ReadableInput<T>::peek( reader, sp );
-				}
 			};
 
 			template<typename T>
@@ -81,6 +97,7 @@ namespace daw::io {
 			}
 		} // namespace
 	}   // namespace io_details
+
 	class ReadProxy {
 		daw::unique_ptr<io_details::ReadProxyImpl> reader;
 
@@ -125,69 +142,28 @@ namespace daw::io {
 			assert( reader );
 			return reader->get( b );
 		}
-
-		constexpr std::size_t max_peek_size( ) const {
-			assert( reader );
-			return reader->max_peek_size( );
-		}
-
-		constexpr IOOpResult peek( std::span<std::byte> sp ) {
-			assert( reader );
-			return reader->peek( sp );
-		}
-
-		constexpr IOOpResult peek( std::span<char> sp ) {
-			assert( reader );
-			return reader->peek( sp );
-		}
 	};
 
-	template<typename Readable>
-	struct Reader {
-		struct data_t {
-			Readable &readable_value;
-		};
-		daw::unique_ptr<data_t> data{ };
+	template<>
+	class Reader<ReadProxy> {
+		ReadProxy reader;
 
+	public:
 		explicit Reader( ) = default;
-		explicit constexpr Reader( Readable &readable_value )
-		  : data( daw::make_unique<data_t>( readable_value ) ) {}
+		explicit constexpr Reader( ReadProxy &&rp )
+		  : reader( std::move( rp ) ) {}
 
-		constexpr IOOpResult read( std::span<char> sp ) {
-			assert( data );
-			return ReadableInput<Readable>::read( data->readable_value, sp );
+		template<typename Byte>
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr IOOpResult
+		read( std::span<Byte> sp ) {
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
+			return reader.read( sp );
 		}
 
-		constexpr IOOpResult read( std::span<std::byte> sp ) {
-			assert( data );
-			return ReadableInput<Readable>::read( data->readable_value, sp );
-		}
-
-		constexpr IOOpResult get( char &c ) {
-			assert( data );
-			return ReadableInput<Readable>::get( data->readable_value, c );
-		}
-
-		constexpr IOOpResult get( std::byte &b ) {
-			assert( data );
-			return ReadableInput<Readable>::get( data->readable_value, b );
-		}
-
-		constexpr std::size_t max_peek_size( ) const {
-			assert( data );
-			return ReadableInput<Readable>::max_peek_size( data->readable_value );
-		}
-
-		constexpr IOOpResult peek( std::span<char> sp ) {
-			assert( data );
-			return ReadableInput<Readable>::peek( data->readable_value, sp );
-		}
-
-		constexpr IOOpResult peek( std::span<std::byte> sp ) {
-			assert( data );
-			return ReadableInput<Readable>::peek( data->readable_value, sp );
+		template<typename Byte>
+		[[nodiscard]] DAW_ATTRIB_INLINE constexpr IOOpResult get( Byte &b ) {
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
+			return reader.get( b );
 		}
 	};
-	template<typename ReadableType>
-	Reader( ReadableType ) -> Reader<ReadableType>;
 } // namespace daw::io

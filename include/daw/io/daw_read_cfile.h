@@ -25,7 +25,7 @@ namespace daw::io {
 	struct ReadableInput<FILE *> {
 		template<typename Byte>
 		static IOOpResult read( FILE *fp, std::span<Byte> buff ) {
-			static_assert( sizeof( Byte ) == 1 );
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
 			auto result = std::fread( buff.data( ), 1, buff.size( ), fp );
 			if( std::feof( fp ) ) {
 				return { IOOpStatus::Eof, result };
@@ -44,7 +44,7 @@ namespace daw::io {
 
 		template<typename Byte>
 		static IOOpResult get( FILE *fp, Byte &c ) {
-			static_assert( sizeof( Byte ) == 1 );
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
 			auto result = std::fgetc( fp );
 			if( result >= 0 ) {
 				c = static_cast<Byte>( result );
@@ -60,17 +60,6 @@ namespace daw::io {
 			io_impl::do_io_error(
 			  "Unexpected state, unread bytes but eof not set and error not set in "
 			  "FILE*" );
-		}
-
-		static inline std::size_t max_peek_size( FILE * ) {
-			return 0;
-		}
-
-		template<typename Byte>
-		[[noreturn]] DAW_ATTRIB_NOINLINE static IOOpResult
-		peek( FILE *, std::span<Byte> ) {
-			static_assert( sizeof( Byte ) == 1 );
-			io_impl::do_io_error( "Unsupported operation" );
 		}
 	};
 } // namespace daw::io

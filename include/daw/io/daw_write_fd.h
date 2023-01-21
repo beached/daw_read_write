@@ -92,5 +92,12 @@ namespace daw::io {
 			}
 			return { IOOpStatus::Ok, written };
 		}
+
+		template<typename B>
+		[[nodiscard]] static inline IOOpResult put( fd_wrap_t fd, B b ) {
+			static_assert( daw::traits::is_one_of_v<B, char, std::byte> );
+			auto const byte = static_cast<std::byte>( b );
+			return WritableOutput::write( fd, std::span<std::byte const>( &byte, 1 ) );
+		}
 	};
 } // namespace daw::io

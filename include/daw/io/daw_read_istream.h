@@ -24,6 +24,7 @@ namespace daw::io {
 		using char_type = typename std::istream::char_type;
 		template<typename Byte>
 		static IOOpResult read( std::istream &is, std::span<Byte> buff ) {
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
 			if( is.eof( ) ) {
 				return { IOOpStatus::Eof, 0 };
 			} else if( not is.good( ) ) {
@@ -48,6 +49,7 @@ namespace daw::io {
 
 		template<typename Byte>
 		static inline IOOpResult get( std::istream &is, Byte &c ) {
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
 			if( is.eof( ) ) {
 				return { IOOpStatus::Eof, 0 };
 			} else if( not is.good( ) ) {
@@ -59,29 +61,6 @@ namespace daw::io {
 				return { IOOpStatus::Eof, 0 };
 			}
 			c = static_cast<Byte>( i );
-			if( is.eof( ) ) {
-				return { IOOpStatus::Eof, 1 };
-			}
-			return { is.good( ) ? IOOpStatus::Ok : IOOpStatus::Error, 1 };
-		}
-
-		static inline std::size_t max_peek_size( std::istream const &is ) {
-			return is.good( ) ? 1 : 0;
-		}
-
-		template<typename Byte>
-		static inline IOOpResult peek( std::istream &is, std::span<Byte> buff ) {
-			if( is.eof( ) ) {
-				return { IOOpStatus::Eof, 0 };
-			} else if( not is.good( ) ) {
-				return { IOOpStatus::Error, 0 };
-			}
-			auto i = is.peek( );
-			using traits = typename std::istream::traits_type;
-			if( i == traits::eof( ) ) {
-				return { IOOpStatus::Eof, 0 };
-			}
-			buff[0] = static_cast<Byte>( i );
 			if( is.eof( ) ) {
 				return { IOOpStatus::Eof, 1 };
 			}

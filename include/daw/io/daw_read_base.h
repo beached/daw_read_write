@@ -41,22 +41,5 @@ namespace daw::io {
 			static_assert( daw::always_false_v<T>,
 			               "ReadableInput not specialized for type" );
 		}
-
-		[[noreturn]] static std::size_t max_peek_size( T & ) {
-			static_assert( daw::always_false_v<T>,
-			               "ReadableInput not specialized for type" );
-		}
-
-		[[noreturn]] static IOOpResult peek( T &, std::span<char> /*buff*/,
-		                                       std::size_t /*how_much*/ ) {
-			static_assert( daw::always_false_v<T>,
-			               "ReadableInput not specialized for type" );
-		}
-
-		[[noreturn]] static IOOpResult peek( T &,
-		                                       std::span<std::byte> /*buff*/ ) {
-			static_assert( daw::always_false_v<T>,
-			               "ReadableInput not specialized for type" );
-		}
 	};
 } // namespace daw::io

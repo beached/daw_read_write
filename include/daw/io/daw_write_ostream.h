@@ -94,5 +94,19 @@ namespace daw::io {
 			}
 			return { IOOpStatus::Ok, written };
 		}
+
+		template<typename Byte>
+		[[nodiscard]] static inline IOOpResult put( std::ostream &os, Byte b ) {
+			static_assert( daw::traits::is_one_of_v<Byte, char, std::byte> );
+
+			os.put( static_cast<char>( b ) );
+			if( os.good( ) ) {
+				return { IOOpStatus::Ok, 1 };
+			}
+			if( os.eof( ) ) {
+				return { IOOpStatus::Eof, 0 };
+			}
+			return { IOOpStatus::Error, 0 };
+		}
 	};
 } // namespace daw::io

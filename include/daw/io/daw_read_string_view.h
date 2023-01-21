@@ -21,10 +21,12 @@
 namespace daw::io {
 	template<typename CharT, daw::string_view_bounds_type BT>
 	struct ReadableInput<daw::basic_string_view<CharT, BT>> {
+		static_assert( daw::traits::is_one_of_v<CharT, std::byte, char> );
 		using value_type = daw::basic_string_view<CharT, BT>;
 
 		template<typename Byte>
 		static constexpr IOOpResult read( value_type &sv, std::span<Byte> buff ) {
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
 			if( sv.empty( ) ) {
 				return { IOOpStatus::Error, 0 };
 			}
@@ -39,6 +41,7 @@ namespace daw::io {
 
 		template<typename Byte>
 		static constexpr IOOpResult get( value_type &sv, Byte &b ) {
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
 			if( sv.empty( ) ) {
 				return { IOOpStatus::Error, 0 };
 			}
@@ -46,32 +49,16 @@ namespace daw::io {
 			b = static_cast<Byte>( result );
 			return { sv.empty( ) ? IOOpStatus::Eof : IOOpStatus::Ok, 1 };
 		}
-
-		static constexpr std::size_t max_peek_size( value_type const &sv ) {
-			return sv.size( );
-		}
-
-		template<typename Byte>
-		static constexpr IOOpResult peek( value_type &sv, std::span<Byte> buff ) {
-			if( sv.empty( ) ) {
-				return { IOOpStatus::Eof, 0 };
-			}
-			auto const peek_size = std::min( sv.size( ), buff.size( ) );
-			daw::algorithm::transform_n( sv.data( ), buff.data( ), peek_size,
-			                             []( auto c ) {
-				                             return static_cast<Byte>( c );
-			                             } );
-			return { peek_size == sv.size( ) ? IOOpStatus::Eof : IOOpStatus::Ok,
-			         peek_size };
-		}
 	};
 
 	template<typename CharT, typename Traits>
 	struct ReadableInput<std::basic_string_view<CharT, Traits>> {
+		static_assert( daw::traits::is_one_of_v<CharT, std::byte, char> );
 		using value_type = std::basic_string_view<CharT, Traits>;
 
 		template<typename Byte>
 		static constexpr IOOpResult read( value_type &sv, std::span<Byte> buff ) {
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
 			if( sv.empty( ) ) {
 				return { IOOpStatus::Error, 0 };
 			}
@@ -87,6 +74,7 @@ namespace daw::io {
 
 		template<typename Byte>
 		static constexpr IOOpResult get( value_type &sv, Byte &b ) {
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
 			if( sv.empty( ) ) {
 				return { IOOpStatus::Error, 0 };
 			}
@@ -94,24 +82,6 @@ namespace daw::io {
 			sv.remove_prefix( 1 );
 			b = static_cast<Byte>( result );
 			return { sv.empty( ) ? IOOpStatus::Eof : IOOpStatus::Ok, 1 };
-		}
-
-		static constexpr std::size_t max_peek_size( value_type const &sv ) {
-			return sv.size( );
-		}
-
-		template<typename Byte>
-		static constexpr IOOpResult peek( value_type &sv, std::span<Byte> buff ) {
-			if( sv.empty( ) ) {
-				return { IOOpStatus::Eof, 0 };
-			}
-			auto const peek_size = std::min( sv.size( ), buff.size( ) );
-			daw::algorithm::transform_n( sv.data( ), buff.data( ), peek_size,
-			                             []( auto c ) {
-				                             return static_cast<Byte>( c );
-			                             } );
-			return { peek_size == sv.size( ) ? IOOpStatus::Eof : IOOpStatus::Ok,
-			         peek_size };
 		}
 	};
 } // namespace daw::io

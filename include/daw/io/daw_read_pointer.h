@@ -21,49 +21,21 @@
 namespace daw::io {
 	template<typename Byte>
 	struct ReadableInput<Byte *> {
-		static_assert( sizeof( Byte * ) == 1 );
-		static_assert( not std::is_const_v<Byte *> );
+		static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
 
-		[[nodiscard]] static IOOpResult read( Byte *&ptr, std::span<char> sp ) {
-			ptr = daw::algorithm::transform_n( ptr, sp.data( ), sp.size( ),
-			                                   []( auto b ) {
-				                                   return static_cast<char>( b );
-			                                   } )
-			        .input;
+		template<typename B>
+		[[nodiscard]] static IOOpResult read( Byte *&ptr, std::span<B> sp ) {
+			static_assert( daw::traits::is_one_of_v<B, std::byte, char> );
+			ptr = daw::algorithm::convert_copy_n<B>( ptr, sp.data( ), sp.size( ) );
 			return { IOOpStatus::Ok, sp.size( ) };
-		}
-
-		[[nodiscard]] static IOOpResult read( Byte *&ptr,
-		                                      std::span<std::byte> sp ) {
-			ptr = daw::algorithm::transform_n( ptr, sp.data( ), sp.size( ),
-			                                   []( auto b ) {
-				                                   return static_cast<std::byte>( b );
-			                                   } )
-			        .input;
-			return { IOOpStatus::Ok, sp.size( ) };
-		}
-
-		[[nodiscard]] static IOOpResult get( Byte *&ptr, char &b ) {
-			b = static_cast<char>( *ptr );
-			++ptr;
-			return { IOOpStatus::Ok, 1 };
-		}
-
-		[[nodiscard]] static IOOpResult get( Byte *&ptr, std::byte &b ) {
-			b = static_cast<std::byte>( *ptr );
-			++ptr;
-			return { IOOpStatus::Ok, 1 };
-		}
-
-		[[nodiscard]] static std::size_t max_peek_size( Byte *& ) {
-			return 0;
 		}
 
 		template<typename B>
-		[[nodiscard]] static IOOpResult peek( Byte *&, std::span<B> /*buff*/,
-		                                      std::size_t /*how_much*/ ) {
-			static_assert( sizeof( B ) == 1 );
-			io_impl::do_io_error( "Unsupported operation" );
+		[[nodiscard]] static IOOpResult get( Byte *&ptr, B &b ) {
+			static_assert( daw::traits::is_one_of_v<B, std::byte, char> );
+			b = static_cast<B>( *ptr );
+			++ptr;
+			return { IOOpStatus::Ok, 1 };
 		}
 	};
 } // namespace daw::io

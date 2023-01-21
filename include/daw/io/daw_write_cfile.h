@@ -72,5 +72,18 @@ namespace daw::io {
 			}
 			return { IOOpStatus::Ok, written };
 		}
+
+		template<typename B>
+		[[nodiscard]] static inline IOOpResult put( FILE *fp, B b ) {
+			static_assert( daw::traits::is_one_of_v<B, char, std::byte> );
+			(void)std::fputc( static_cast<char>( b ), fp );
+			if( std::feof( fp ) ) {
+				return { IOOpStatus::Eof, 0 };
+			}
+			if( std::ferror( fp ) ) {
+				return { IOOpStatus::Error, 0 };
+			}
+			return { IOOpStatus::Ok, 1 };
+		}
 	};
 } // namespace daw::io
