@@ -8,4 +8,22 @@
 
 #pragma once
 
+#include "daw_read_write.h"
 #include "type_writers/daw_integer_writer.h"
+
+#include <daw/cpp_17.h>
+
+#include <type_traits>
+
+namespace daw::io::type_writer {
+	namespace impl {
+		template<typename T>
+		using has_type_writer_test = decltype( daw::io::type_writer::type_writer(
+		  std::declval<daw::io::WriteProxy &>( ), std::declval<T const &>( ) ) );
+	}
+
+	template<typename T>
+	inline constexpr bool has_type_writer_v =
+	  daw::is_detected_v<impl::has_type_writer_test, T>;
+
+} // namespace daw::io::type_writer

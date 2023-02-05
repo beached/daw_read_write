@@ -144,7 +144,7 @@ namespace daw::io::type_writer {
 	template<
 	  typename Integer, typename Writer,
 	  std::enable_if_t<daw::is_integral_v<Integer>, std::nullptr_t> = nullptr>
-	daw::io::IOOpResult write_integer( Writer &writer, Integer const &i ) {
+	daw::io::IOOpResult type_writer( Writer &writer, Integer const &i ) {
 		if constexpr( daw::is_unsigned_v<Integer> ) {
 			return impl::write_unsigned( writer, i );
 		} else {

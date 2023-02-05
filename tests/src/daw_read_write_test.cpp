@@ -65,6 +65,6 @@ int main( int, char **argv ) {
 	memset( buff, 0, 1024 );
 	(void)b.write( "This is a test\n" );
 	(void)fdw.write( std::string_view( buff ) );
-	daw::io::type_writer::write_integer( fdw, 5555 );
-	daw::io::type_writer::write_integer( fdw, 3333U );
+	daw::io::type_writer::type_writer( fdw, 5555 );
+	daw::io::type_writer::type_writer( fdw, 3333U );
 }
