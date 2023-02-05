@@ -8,6 +8,7 @@
 
 #include <daw/io/daw_read_write.h>
 #include <daw/io/daw_read_write_fd.h>
+#include <daw/io/type_writers.h>
 
 #include <iostream>
 #include <string>
@@ -25,7 +26,7 @@ int main( int, char **argv ) {
 	auto sv = daw::string_view( s );
 	auto rp = daw::io::ReadProxy( sv );
 	auto sv2 = daw::string_view( s );
-	auto rpr = daw::io::PeekableReader( daw::io::Reader(sv2) );
+	auto rpr = daw::io::PeekableReader( daw::io::Reader( sv2 ) );
 	auto peek_result = rpr.peek( 5 );
 	std::cout << "Peek Result\n"
 	          << std::string_view(
@@ -64,4 +65,6 @@ int main( int, char **argv ) {
 	memset( buff, 0, 1024 );
 	(void)b.write( "This is a test\n" );
 	(void)fdw.write( std::string_view( buff ) );
+	daw::io::type_writer::write_integer( fdw, 5555 );
+	daw::io::type_writer::write_integer( fdw, 3333U );
 }

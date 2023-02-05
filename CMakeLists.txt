@@ -9,7 +9,7 @@
 cmake_minimum_required( VERSION 3.20 )
 
 project( "daw-read-write"
-         VERSION "0.0.1"
+         VERSION "0.1.0"
          DESCRIPTION "Generalized sinks and sources for writing and reading"
          HOMEPAGE_URL "https://github.com/beached/daw_read_write"
          LANGUAGES C CXX

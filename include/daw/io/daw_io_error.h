@@ -17,3 +17,23 @@ namespace daw::io::io_impl {
 		std::terminate( );
 	}
 } // namespace daw::io::io_impl
+
+#define daw_io_ensure( Condition, Message )         \
+	do {                                              \
+		if( not( Condition ) ) {                        \
+			daw::io::io_impl::do_io_error( ( Message ) ); \
+		}                                               \
+	} while( false )
+
+#if not defined( NDEBUG )
+#define daw_io_assert( Condition, Message )         \
+	do {                                              \
+		if( not( Condition ) ) {                        \
+			daw::io::io_impl::do_io_error( ( Message ) ); \
+		}                                               \
+	} while( false )
+#else
+#define daw_io_assert( Condition, Message ) \
+	do {                                      \
+	} while( false )
+#endif

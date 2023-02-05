@@ -173,7 +173,7 @@ namespace daw::io {
 
 		template<typename Byte>
 		[[nodiscard]] constexpr IOOpResult put( Byte b ) {
-			static_asssert( daw::traits::is_one_of_v<Byte, std::byte, char> );
+			static_assert( daw::traits::is_one_of_v<Byte, std::byte, char> );
 			assert( writer );
 			return writer->put( b );
 		}
