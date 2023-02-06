@@ -26,26 +26,32 @@ namespace daw::io::type_writer {
 	inline constexpr bool has_type_writer_v =
 	  daw::is_detected_v<impl::has_type_writer_test, T>;
 
-	/// Attempt to use the type_writer interface when args isn't a string like parameter.
-	template<typename Writer, typename...Ts>
-	IOOpResult write_all( Writer & writer, Ts&&...args ) {
-		auto result = IOOpResult{};
-		auto write_item = [&]( auto && item ) {
+	/// Attempt to use the type_writer interface when args isn't a string like
+	/// parameter.
+	template<typename Writer, typename... Ts>
+	IOOpResult write_all( Writer &writer, Ts &&...args ) {
+		auto result = IOOpResult{ };
+		auto write_item = [&]( auto &&item ) {
 			using item_t = DAW_TYPEOF( item );
-			auto item_result = IOOpResult{};
+			auto item_result = IOOpResult{ };
 			if( result.status != IOOpStatus::Ok ) {
 				return;
 			}
-			if constexpr( daw::traits::is_string_view_like_v<item_t>) {
-				item_result =  writer.write( item );
+			if constexpr( std::is_constructible_v<char, item_t> and
+			              sizeof( item_t ) == 1 ) {
+				item_result = writer.write( daw::string_view( &item, 1 ) );
+			} else if constexpr( std::is_constructible_v<daw::string_view,
+			                                             decltype( item )> ) {
+				item_result = writer.write( item );
 			} else {
-				static_assert( has_type_writer_v<item_t>, "Unsupported type.  Maybe a to_string is needed" );
+				static_assert( has_type_writer_v<item_t>,
+				               "Unsupported type.  Maybe a to_string is needed" );
 				item_result = type_writer( writer, item );
 			}
 			result.status = item_result.status;
 			result.count += item_result.count;
 		};
-		int expander[] = { write_item( args )... };
+		int expander[] = { (write_item( args ),1)... };
 		(void)expander;
 		return result;
 	}
