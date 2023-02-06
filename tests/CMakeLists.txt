@@ -10,10 +10,10 @@ include( cmake/test_compiler_options.cmake )
 
 if( MSVC )
     add_compile_options( -DDEBUG /permissive- /EHsc )
-    #add_compile_options( -DDEBUG /permissive- /EHsc /fsanitize=address )
-    #add_link_options( /fsanitize=address -fno-omit-frame-pointer )
+    add_compile_options( -DDEBUG /permissive- /EHsc /fsanitize=address )
+    add_link_options( /fsanitize=address -fno-omit-frame-pointer )
 else()
-    #add_compile_options( -fsanitize=address,undefined )
+    add_compile_options( -fsanitize=address,undefined )
 endif()
 
 add_library( daw_read_write_test_lib INTERFACE )
@@ -23,6 +23,6 @@ target_compile_options( daw_read_write_test_lib INTERFACE $<$<CXX_COMPILER_ID:MS
 
 add_executable( daw_read_write_bin src/daw_read_write_test.cpp )
 target_link_libraries( daw_read_write_bin PRIVATE daw_read_write_test_lib )
-#target_link_options( daw_read_write_bin PRIVATE -fsanitize=address,undefined )
+target_link_options( daw_read_write_bin PRIVATE -fsanitize=address,undefined )
 add_test( NAME daw_read_write_test COMMAND daw_read_write_bin )
 

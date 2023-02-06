@@ -9,11 +9,21 @@
 #include <daw/io/daw_read_write.h>
 #include <daw/io/daw_read_write_fd.h>
 #include <daw/io/daw_type_writers.h>
+#include <daw/io/daw_write_stream.h>
 
 #include <iostream>
 #include <string>
 
 int main( int, char **argv ) {
+	{
+		auto wp = daw::io::WriteProxy( std::cout );
+		auto wsb = daw::io::write_streambuf( wp );
+		(void)wp.write( "ostream start\n" );
+		auto wo = daw::io::write_ostream( wp );
+		wo.write( "Hello\n", 6 );
+		wo << "Hello World  " << 5555 << " WHAT!\n\n";
+		(void)wp.write( "ostream done\n" );
+	}
 	auto s = std::string( );
 	auto p = daw::io::WriteProxy( s );
 	if( p.write( argv[0] ).status != daw::io::IOOpStatus::Ok ) {
@@ -58,6 +68,7 @@ int main( int, char **argv ) {
 	auto sz = w.write( { "Hello", " ", "World", "\n" } );
 	(void)sz;
 	auto fd = daw::io::fd_wrap_t( STDOUT_FILENO );
+
 	auto fdw = daw::io::WriteProxy( fd );
 	(void)fdw.write( std::string_view( buff ) );
 	auto *bptr = buff;
