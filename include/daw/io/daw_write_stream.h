@@ -55,6 +55,14 @@ namespace daw::io {
 			}
 			return static_cast<std::streamsize>( ret.count );
 		}
+
+		WriteProxy const &writer( ) const {
+			return m_writer;
+		}
+
+		WriteProxy &writer( ) {
+			return m_writer;
+		}
 	};
 
 	class write_ostream : public std::ostream {
@@ -86,6 +94,14 @@ namespace daw::io {
 		  : std::ostream( nullptr )
 		  , m_stream( writer ) {
 			rdbuf( std::addressof( m_stream ) );
+		}
+
+		WriteProxy const &writer( ) const {
+			return m_stream.writer( );
+		}
+
+		WriteProxy &writer( ) {
+			return m_stream.writer( );
 		}
 	};
 } // namespace daw::io
