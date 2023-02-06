@@ -33,11 +33,16 @@ namespace daw::io {
 		explicit constexpr write_iterator( WriteProxy &&wp )
 		  : m_writer( std::move( wp ) ) {}
 
+		template<typename WritableType>
+		static constexpr bool is_writable_type =
+		  not std::is_same_v<write_iterator, WritableType> and
+		  not std::is_same_v<WriteProxy, WritableType> and
+		  not std::is_const_v<WritableType>;
+
 		template<typename WritableType,
-		         std::enable_if_t<
-		           not std::is_const_v<std::remove_reference_t<WritableType>>,
-		           std::nullptr_t> = nullptr>
-		explicit constexpr write_iterator( WritableType &&writer )
+		         std::enable_if_t<is_writable_type<WritableType>, std::nullptr_t> =
+		           nullptr>
+		explicit constexpr write_iterator( WritableType &writer )
 		  : m_writer( DAW_FWD( writer ) ) {}
 
 		constexpr write_iterator &operator++( ) noexcept {
