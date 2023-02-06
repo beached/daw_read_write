@@ -12,5 +12,6 @@
 #include "daw_read_proxy.h"
 #include "daw_readable_input.h"
 #include "daw_writable_output.h"
+#include "daw_write_iterator.h"
 #include "daw_write_proxy.h"
 #include "util/daw_io_algorithms.h"
