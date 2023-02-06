@@ -27,6 +27,12 @@ namespace daw::io {
 
 	public:
 		/// @tparam Writable A Writable type
+		explicit constexpr write_iterator( WriteProxy const &wp )
+		  : m_writer( wp ) {}
+
+		explicit constexpr write_iterator( WriteProxy &&wp )
+		  : m_writer( std::move( wp ) ) {}
+
 		template<typename WritableType,
 		         std::enable_if_t<
 		           not std::is_const_v<std::remove_reference_t<WritableType>>,
