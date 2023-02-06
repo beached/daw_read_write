@@ -78,5 +78,6 @@ int main( int, char **argv ) {
 	(void)fdw.write( std::string_view( buff ) );
 	daw::io::type_writer::type_writer( fdw, 5555 );
 	daw::io::type_writer::type_writer( fdw, 3333U );
-	daw::io::type_writer::write_all( fdw, "Hello ", 42, ' ', 55U, " World");
+	(void)daw::io::type_writer::write_all( fdw, "Hello ", 42, ' ', 55U, " World\n\n");
+	daw::io::type_writer::print( fdw, "Hello {} {} World!", 55U, 42 );
 }
