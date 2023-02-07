@@ -121,6 +121,12 @@ namespace daw::io::type_writer {
 						first = fmt_str.data( );
 					}
 					return last_result;
+				} else if( brace_count > 0 and brace_count % 2 == 0 ) {
+					brace_count = 0;
+					last_result = writer.write( daw::string_view( first, part.data_end( ) ) );
+					if( not fmt_str.empty( ) ) {
+						first = fmt_str.data( );
+					}
 				}
 			}
 			// This should never be reached as we know there are the same number of {}
