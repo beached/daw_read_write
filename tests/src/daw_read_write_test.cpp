@@ -79,5 +79,5 @@ int main( int, char **argv ) {
 	daw::io::type_writer::type_writer( fdw, 5555 );
 	daw::io::type_writer::type_writer( fdw, 3333U );
 	(void)daw::io::type_writer::write_all( fdw, "Hello ", 42, ' ', 55U, " World\n\n");
-	daw::io::type_writer::print( fdw, "Hello {} {} World!", 55U, 42 );
+	daw::io::type_writer::print( fdw, "Hello {{{} {} World!", 55U, 42 );
 }

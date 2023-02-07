@@ -111,12 +111,15 @@ namespace daw::io::type_writer {
 				auto part = fmt_str.pop_front_until( '{' );
 				fmt_str.trim_prefix( );
 				++brace_count;
-				if( brace_count % 2 == 1 ) {
+				if( brace_count % 2 == 1 and fmt_str.starts_with( '}' ) ) {
 					brace_count = 0;
-					fmt_str.remove_prefix_until( '}' );
+					fmt_str.remove_prefix( );
 					last_result =
 					  write_all( writer, daw::string_view( first, part.data_end( ) ),
 					             DAW_FWD( arg ) );
+					if( not fmt_str.empty( ) ) {
+						first = fmt_str.data( );
+					}
 					return last_result;
 				}
 			}
