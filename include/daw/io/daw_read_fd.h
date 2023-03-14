@@ -20,6 +20,10 @@
 #include <cstdio>
 #include <optional>
 #include <span>
+
+#if not __has_include( <unistd.h> )
+#error fd is only supported when unistd.h is present
+#endif
 #include <unistd.h>
 
 namespace daw::io {

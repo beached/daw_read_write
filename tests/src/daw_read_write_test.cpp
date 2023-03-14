@@ -7,7 +7,9 @@
 //
 
 #include <daw/io/daw_read_write.h>
+#if not defined( _MSC_VER )
 #include <daw/io/daw_read_write_fd.h>
+#endif
 #include <daw/io/daw_type_writers.h>
 #include <daw/io/daw_write_stream.h>
 
@@ -67,6 +69,7 @@ int main( int, char **argv ) {
 	auto w = daw::io::Writer( bspan );
 	auto sz = w.write( { "Hello", " ", "World", "\n" } );
 	(void)sz;
+#if not defined( _MSC_VER )
 	auto fd = daw::io::fd_wrap_t( STDOUT_FILENO );
 
 	auto fdw = daw::io::WriteProxy( fd );
@@ -80,4 +83,5 @@ int main( int, char **argv ) {
 	daw::io::type_writer::type_writer( fdw, 3333U );
 	(void)daw::io::type_writer::write_all( fdw, "Hello ", 42, ' ', 55U, " World\n\n");
 	daw::io::type_writer::print( fdw, "Hello {{{} {} World!", 55U, 42 );
+#endif
 }
